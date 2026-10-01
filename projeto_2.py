@@ -22,18 +22,21 @@ def menu(content):
         maior_price, maior_area, maior_rooms, maior_m2, menor_price, menor_area, menor_rooms, menor_m2 = maior_menor(content)
         relatorio(cont_lidos, cont_validos, cont_invalidos, cont_ausentes, media_price, media_area, media_rooms, media_m2, maior_price, maior_area, maior_rooms, maior_m2, menor_price, menor_area, menor_rooms, menor_m2)
         redirecionar(content)
+
     elif prox == "filtrar":
         filtro = input("Digite o critério de filtragem (Zip/Price/Area/Room/Long/Lat): ")
         filtrado = filtrar(content, filtro)
         print(f"Total de anúncios filtrados: {len(filtrado)}")
         exibir(filtrado)
         redirecionar(filtrado)
+        
     elif prox == "buscar":
         termo = input("Digite o critério de busca (Address/Zip): ")
         buscado = buscar(content, termo)
         print(f"Total de anúncios encontrados: {len(buscado)}")
         exibir(buscado)
         redirecionar(buscado)
+
     elif prox == "ordenar": 
         criterio_1 = input("Digite o primeiro critério de ordenação (Price/Area/Room/m2): ")
         ordem_1 = input("Digite a ordem do primeiro critério (asc/desc): ")
@@ -41,42 +44,52 @@ def menu(content):
         ordem_2 = input("Digite a ordem do segundo critério (asc/desc): ")
         ordenar(content, criterio_1, ordem_1, criterio_2, ordem_2)
         redirecionar(content)
+
     elif prox == "sair":
         print("Obrigado pelo uso!")
         print("Encerrando o programa...")
+
     else:
         print("Opção inválida. Encerrando o programa...")
 
 def ler_base():
 
-    # Abrir o arquivo CSV e ler seu conteúdo como um dicionário
-    with open("HousingPrices-Amsterdam-August-2021.csv", "r", encoding="utf-8") as table:
-        content = list(csv.DictReader(table))
+    try:
+        # Abrir o arquivo CSV e ler seu conteúdo como um dicionário
+        with open("HousingPrices-Amsterdam-August-2021.csv", "r", encoding="utf-8") as table:
+            content = list(csv.DictReader(table))
+    except FileNotFoundError:
+        print("Arquivo CSV não encontrado. Certifique-se de que o arquivo 'HousingPrices-Amsterdam-August-2021.csv' está no diretório correto.")
+        return []
 
+    result = criar_m2(content)
+    return result
+
+def criar_m2(content):
         
-        for row in content:
+    for row in content:
+    
+        #Transformar tipo de dados
+        if row["Price"] and row["Price"] != "NA":
+            text_value = row["Price"]
+            numeric_value = float(text_value)
+            row["Price"] = numeric_value
+        if row["Price"] == "NA":
+            row["Price"] = None
+        if row["Area"] and row["Price"] != "NA":
+            row["Area"] = int(row["Area"])
+        if row["Area"] == "NA":
+            row["Area"] = None
+        if row["Room"]:
+            row["Room"] = int(row["Room"])
 
-            #Transformar tipo de dados
-            if row["Price"] and row["Price"] != "NA":
-                text_value = row["Price"]
-                numeric_value = float(text_value)
-                row["Price"] = numeric_value
-            if row["Price"] == "NA":
-                row["Price"] = None
-            if row["Area"] and row["Price"] != "NA":
-                row["Area"] = int(row["Area"])
-            if row["Area"] == "NA":
-                row["Area"] = None
-            if row["Room"]:
-                row["Room"] = int(row["Room"])
+        #Adicionar coluna m2
+        if row["Price"] and row["Area"]:
+            row["m2"] = row["Price"] / row["Area"]
+        else:
+            row["m2"] = None
 
-            #Adicionar coluna m2
-            if row["Price"] and row["Area"]:
-                row["m2"] = row["Price"] / row["Area"]
-            else:
-                row["m2"] = None
-
-        return content
+    return content
 
 def processar_base(content):
 
@@ -211,13 +224,16 @@ def filtrar(content, filtro):
 
 def filtrar_zip(content):
 
+    #Sentinela
+    sent = True
+
     #Filtrar os dados por zip
-    while True:
+    while sent:
 
         filtro = input("Digite o código postal (Zip) que deseja filtrar: ")
 
         if filtro:
-            break
+            sent = False
     
     filtrado_zip = []
 
@@ -230,14 +246,17 @@ def filtrar_zip(content):
 
 def filtrar_price(content):
 
+    #Sentinela
+    sent = True
+
     #Filtrar dados por price
-    while True:
+    while sent:
 
         max_price = int(input("Digite o preço máximo (Price) que deseja filtrar: "))
         min_price = int(input("Digite o preço mínimo (Price) que deseja filtrar: "))
 
         if max_price and min_price and max_price > min_price:
-            break
+            sent = False
 
     filtrado_price = []
 
@@ -250,14 +269,17 @@ def filtrar_price(content):
 
 def filtrar_area(content):
 
+    #Sentinela
+    sent = True
+
     #Filtrar dados por area
-    while True:
+    while sent:
 
         max_area = int(input("Digite a área máxima (Area) que deseja filtrar: "))
         min_area = int(input("Digite a área mínima (Area) que deseja filtrar: "))
 
         if max_area and min_area and max_area > min_area:
-            break
+            sent = False
 
     filtrado_area = []
 
@@ -269,15 +291,18 @@ def filtrar_area(content):
     return filtrado_area
 
 def filtrar_room(content):
-    
+
+    #Sentinela
+    sent = True
+
     #Filtrar dados por room
-    while True:
+    while sent:
 
         max_room = int(input("Digite o número máximo de cômodos (Room) que deseja filtrar: "))
         min_room = int(input("Digite o número mínimo de cômodos (Room) que deseja filtrar: "))
 
         if max_room and min_room and max_room > min_room:
-            break
+            sent = False
 
     filtrado_room = []
 
@@ -290,14 +315,17 @@ def filtrar_room(content):
 
 def filtrar_long(content):
 
+    #Sentinela
+    sent = True
+
     #Filtrar dados por longitude
-    while True:
+    while sent:
 
         max_long = float(input("Digite a longitude máxima (Long) que deseja filtrar: "))
         min_long = float(input("Digite a longitude mínima (Long) que deseja filtrar: "))
 
         if max_long and min_long and max_long > min_long:
-            break
+            sent = False
 
     filtrado_long = []
 
@@ -310,14 +338,17 @@ def filtrar_long(content):
 
 def filtrar_lat(content):
 
+    #Sentinela
+    sent = True
+
     #Filtrar dados por latitude
-    while True:
+    while sent:
 
         max_lat = float(input("Digite a latitude máxima (Lat) que deseja filtrar: "))
         min_lat = float(input("Digite a latitude mínima (Lat) que deseja filtrar: "))
 
         if max_lat and min_lat and max_lat > min_lat:
-            break
+            sent = False
 
     filtrado_lat = []
 
@@ -340,13 +371,16 @@ def buscar(content, termo):
     
 def buscar_address(content):
 
+    #Sentinela
+    sent = True
+
     #Buscar dados por address
-    while True:
+    while sent:
 
         termo = input("Digite o endereço (Address) que deseja buscar: ")
 
         if termo:
-            break
+            sent = False
 
     buscado_address = []
 
@@ -359,13 +393,16 @@ def buscar_address(content):
 
 def buscar_zip(content):
 
+    #Sentinela
+    sent = True
+
     #Buscar dados por zip
-    while True:
+    while sent:
 
         termo = input("Digite o código postal (Zip) que deseja buscar: ")
 
         if termo:
-            break
+            sent = False
 
     buscado_zip = []
 
@@ -437,13 +474,16 @@ def relatorio(cont_lidos, cont_validos, cont_invalidos, cont_ausentes, media_pri
 
 def redirecionar(nova_tabela):
 
+    #Sentinela
+    sent = True
+
     #Redirecionamento
-    while True:
+    while sent:
 
         resp = input("Deseja retornar ao menu? Digite 'sim' para retornar e 'nao' para sair: ").lower()
 
         if resp in ['sim', 'nao']:
-            break
+            sent = False
 
     if resp == 'sim':
         menu(nova_tabela)
