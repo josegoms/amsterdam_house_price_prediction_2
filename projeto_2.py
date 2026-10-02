@@ -14,8 +14,15 @@ def main():
 def menu(content):
 
     # Manusear opções e distribuir código
-    prox = input("Qual sua próxima ação? (Digite 'relatorio' para gerar relatório, 'filtrar' para filtrar dados, 'buscar' para buscar dados, 'ordenar' para ordenar dados ou 'sair' para encerrar): ") 
-    
+    #Sentinela
+    sent = True
+    while sent:    
+        prox = input("Qual sua próxima ação? (Digite 'relatorio' para gerar relatório, 'filtrar' para filtrar dados, 'buscar' para buscar dados, 'ordenar' para ordenar dados ou 'sair' para encerrar): ") 
+
+        if prox in ["relatorio", "filtrar", "buscar", "ordenar", "sair"]:
+            sent = False
+
+    #Delegar subfunções da opção relatório
     if prox == "relatorio":
         cont_lidos, cont_validos, cont_invalidos, cont_ausentes = processar_base(content)
         media_price, media_area, media_rooms, media_m2 = calcular(content, cont_validos)
@@ -23,25 +30,64 @@ def menu(content):
         relatorio(cont_lidos, cont_validos, cont_invalidos, cont_ausentes, media_price, media_area, media_rooms, media_m2, maior_price, maior_area, maior_rooms, maior_m2, menor_price, menor_area, menor_rooms, menor_m2)
         redirecionar(content)
 
+    #Delegar subfunções da opção filtrar
     elif prox == "filtrar":
-        filtro = input("Digite o critério de filtragem (Zip/Price/Area/Room/Long/Lat): ")
+
+        #Sentinela
+        sent = True
+
+        while sent:
+            filtro = input("Digite o critério de filtragem (Zip/Price/Area/Room/Long/Lat): ")
+            if filtro in ["Zip", "Price", "Area", "Room", "Long", "Lat"]:
+                sent = False
         filtrado = filtrar(content, filtro)
         print(f"Total de anúncios filtrados: {len(filtrado)}")
         exibir(filtrado)
         redirecionar(filtrado)
-        
+    
+    #Delegar subfunções da opção buscar
     elif prox == "buscar":
-        termo = input("Digite o critério de busca (Address/Zip): ")
+        sent = True
+        while sent:
+            termo = input("Digite o critério de busca (Address/Zip): ")
+            if termo in ["Address", "Zip"]:
+                sent = False
         buscado = buscar(content, termo)
         print(f"Total de anúncios encontrados: {len(buscado)}")
         exibir(buscado)
         redirecionar(buscado)
 
-    elif prox == "ordenar": 
-        criterio_1 = input("Digite o primeiro critério de ordenação (Price/Area/Room/m2): ")
-        ordem_1 = input("Digite a ordem do primeiro critério (asc/desc): ")
-        criterio_2 = input("Digite o segundo critério de ordenação (Price/Area/Room/m2): ")
-        ordem_2 = input("Digite a ordem do segundo critério (asc/desc): ")
+    #Delegar subfunções da opção ordenar
+    elif prox == "ordenar":
+
+        #Sentinela 
+        sent1 = True
+        while sent1:
+            criterio_1 = input("Digite o primeiro critério de ordenação (Price/Area/Room/m2): ")
+            if criterio_1 in ["Price", "Area", "Room", "m2"]:
+                sent1 = False
+
+        #Sentinela
+        sent2 = True
+        while sent2:
+            ordem_1 = input("Digite a ordem do primeiro critério (asc/desc): ")
+            if ordem_1 in ["asc", "desc"]:
+                sent2 = False
+
+        #Sentinela
+        sent3 = True
+        while sent3:
+            criterio_2 = input("Digite o segundo critério de ordenação (Price/Area/Room/m2): ")
+            if criterio_2 in ["Price", "Area", "Room", "m2"]:
+                sent3 = False
+        
+        #Sentinela
+        sent4 = True
+        while sent4:
+            ordem_2 = input("Digite a ordem do segundo critério (asc/desc): ")
+            if ordem_2 in ["asc", "desc"]:
+                sent4 = False
+
         ordenar(content, criterio_1, ordem_1, criterio_2, ordem_2)
         redirecionar(content)
 
@@ -54,16 +100,16 @@ def menu(content):
 
 def ler_base():
 
+    #Abrir o arquivo CSV e ler seu conteúdo como um dicionário
     try:
-        # Abrir o arquivo CSV e ler seu conteúdo como um dicionário
         with open("HousingPrices-Amsterdam-August-2021.csv", "r", encoding="utf-8") as table:
             content = list(csv.DictReader(table))
     except FileNotFoundError:
         print("Arquivo CSV não encontrado. Certifique-se de que o arquivo 'HousingPrices-Amsterdam-August-2021.csv' está no diretório correto.")
         return []
-
-    result = criar_m2(content)
-    return result
+    else:
+        result = criar_m2(content)
+        return result
 
 def criar_m2(content):
         
@@ -134,6 +180,11 @@ def calcular(content, cont_validos):
             total_m2 += row["m2"]
 
     # Calcular médias
+    media_price = 0
+    media_area = 0
+    media_rooms = 0
+    media_m2 = 0
+
     if cont_validos > 0:
         media_price = total_price / cont_validos
         media_area = total_area / cont_validos
