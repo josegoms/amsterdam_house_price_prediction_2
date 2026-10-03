@@ -17,7 +17,7 @@ def menu(content):
     #Sentinela
     sent = True
     while sent:    
-        prox = input("Qual sua próxima ação? (Digite 'relatorio' para gerar relatório, 'filtrar' para filtrar dados, 'buscar' para buscar dados, 'ordenar' para ordenar dados ou 'sair' para encerrar): ") 
+        prox = input("Qual sua próxima ação? (Digite 'relatorio' para gerar relatório, 'filtrar' para filtrar dados, 'buscar' para buscar dados, 'ordenar' para ordenar dados ou 'sair' para encerrar): ").lower()
 
         if prox in ["relatorio", "filtrar", "buscar", "ordenar", "sair"]:
             sent = False
@@ -25,9 +25,10 @@ def menu(content):
     #Delegar subfunções da opção relatório
     if prox == "relatorio":
         cont_lidos, cont_validos, cont_invalidos, cont_ausentes = processar_base(content)
-        media_price, media_area, media_rooms, media_m2 = calcular(content, cont_validos)
+        media_price, media_area, media_rooms, media_m2 = calcular(content, cont_validos, cont_ausentes)
         maior_price, maior_area, maior_rooms, maior_m2, menor_price, menor_area, menor_rooms, menor_m2 = maior_menor(content)
-        relatorio(cont_lidos, cont_validos, cont_invalidos, cont_ausentes, media_price, media_area, media_rooms, media_m2, maior_price, maior_area, maior_rooms, maior_m2, menor_price, menor_area, menor_rooms, menor_m2)
+        q_comodos, q_zip = quantificar(content)
+        relatorio(cont_lidos, cont_validos, cont_invalidos, cont_ausentes, media_price, media_area, media_rooms, media_m2, maior_price, maior_area, maior_rooms, maior_m2, menor_price, menor_area, menor_rooms, menor_m2, q_comodos, q_zip)
         redirecionar(content)
 
     #Delegar subfunções da opção filtrar
@@ -37,8 +38,8 @@ def menu(content):
         sent = True
 
         while sent:
-            filtro = input("Digite o critério de filtragem (Zip/Price/Area/Room/Long/Lat): ")
-            if filtro in ["Zip", "Price", "Area", "Room", "Long", "Lat"]:
+            filtro = input("Digite o critério de filtragem (zip/price/area/room/long/lat): ").lower()
+            if filtro in ["zip", "price", "area", "room", "long", "lat"]:
                 sent = False
         filtrado = filtrar(content, filtro)
         print(f"Total de anúncios filtrados: {len(filtrado)}")
@@ -49,8 +50,8 @@ def menu(content):
     elif prox == "buscar":
         sent = True
         while sent:
-            termo = input("Digite o critério de busca (Address/Zip): ")
-            if termo in ["Address", "Zip"]:
+            termo = input("Digite o critério de busca (address/zip): ").lower()
+            if termo in ["address", "zip"]:
                 sent = False
         buscado = buscar(content, termo)
         print(f"Total de anúncios encontrados: {len(buscado)}")
@@ -63,28 +64,28 @@ def menu(content):
         #Sentinela 
         sent1 = True
         while sent1:
-            criterio_1 = input("Digite o primeiro critério de ordenação (Price/Area/Room/m2): ")
-            if criterio_1 in ["Price", "Area", "Room", "m2"]:
+            criterio_1 = input("Digite o primeiro critério de ordenação (price/area/room/m2): ").lower()
+            if criterio_1 in ["price", "area", "room", "m2"]:
                 sent1 = False
 
         #Sentinela
         sent2 = True
         while sent2:
-            ordem_1 = input("Digite a ordem do primeiro critério (asc/desc): ")
+            ordem_1 = input("Digite a ordem do primeiro critério (asc/desc): ").lower()
             if ordem_1 in ["asc", "desc"]:
                 sent2 = False
 
         #Sentinela
         sent3 = True
         while sent3:
-            criterio_2 = input("Digite o segundo critério de ordenação (Price/Area/Room/m2): ")
-            if criterio_2 in ["Price", "Area", "Room", "m2"]:
+            criterio_2 = input("Digite o segundo critério de ordenação (price/area/room/m2): ").lower()
+            if criterio_2 in ["price", "area", "room", "m2"]:
                 sent3 = False
         
         #Sentinela
         sent4 = True
         while sent4:
-            ordem_2 = input("Digite a ordem do segundo critério (asc/desc): ")
+            ordem_2 = input("Digite a ordem do segundo critério (asc/desc): ").lower()
             if ordem_2 in ["asc", "desc"]:
                 sent4 = False
 
@@ -122,7 +123,7 @@ def criar_m2(content):
             row["Price"] = numeric_value
         if row["Price"] == "NA":
             row["Price"] = None
-        if row["Area"] and row["Price"] != "NA":
+        if row["Area"] and row["Area"] != "NA":
             row["Area"] = int(row["Area"])
         if row["Area"] == "NA":
             row["Area"] = None
@@ -159,7 +160,7 @@ def processar_base(content):
 
     return cont_lidos, cont_validos, cont_invalidos, cont_ausentes
 
-def calcular(content, cont_validos):
+def calcular(content, cont_validos, cont_ausentes):
 
     # Inicializar variáveis para calcular as médias
     total_price = 0
@@ -186,10 +187,10 @@ def calcular(content, cont_validos):
     media_m2 = 0
 
     if cont_validos > 0:
-        media_price = total_price / cont_validos
+        media_price = total_price / (cont_validos - cont_ausentes)
         media_area = total_area / cont_validos
         media_rooms = total_rooms / cont_validos
-        media_m2 = total_m2 / cont_validos
+        media_m2 = total_m2 / (cont_validos - cont_ausentes)
 
     return media_price, media_area, media_rooms, media_m2
 
@@ -254,22 +255,22 @@ def quantificar(content):
 def filtrar(content, filtro):
 
     # Filtrar os dados com base no critério fornecido
-    if filtro == "Zip":
+    if filtro == "zip":
         filtrado_zip = filtrar_zip(content)
         return filtrado_zip
-    elif filtro == "Price":
+    elif filtro == "price":
         filtrado_price = filtrar_price(content)
         return filtrado_price
-    elif filtro == "Area":
+    elif filtro == "area":
         filtrado_area = filtrar_area(content)
         return filtrado_area
-    elif filtro == "Room":
+    elif filtro == "room":
         filtrado_room = filtrar_room(content)
         return filtrado_room
-    elif filtro == "Long":
+    elif filtro == "long":
         filtrado_long = filtrar_long(content)
         return filtrado_long
-    elif filtro == "Lat":
+    elif filtro == "lat":
         filtrado_lat = filtrar_lat(content)
         return filtrado_lat
 
@@ -302,12 +303,14 @@ def filtrar_price(content):
 
     #Filtrar dados por price
     while sent:
-
-        max_price = int(input("Digite o preço máximo (Price) que deseja filtrar: "))
-        min_price = int(input("Digite o preço mínimo (Price) que deseja filtrar: "))
-
-        if max_price and min_price and max_price > min_price:
-            sent = False
+        try:
+            max_price = int(input("Digite o preço máximo (Price) que deseja filtrar: "))
+            min_price = int(input("Digite o preço mínimo (Price) que deseja filtrar: "))
+        except ValueError:
+            print("Por favor, digite valores numéricos válidos.")
+        else:
+            if max_price >= min_price:
+                sent = False
 
     filtrado_price = []
 
@@ -326,11 +329,14 @@ def filtrar_area(content):
     #Filtrar dados por area
     while sent:
 
-        max_area = int(input("Digite a área máxima (Area) que deseja filtrar: "))
-        min_area = int(input("Digite a área mínima (Area) que deseja filtrar: "))
-
-        if max_area and min_area and max_area > min_area:
-            sent = False
+        try:
+            max_area = int(input("Digite a área máxima (Area) que deseja filtrar: "))
+            min_area = int(input("Digite a área mínima (Area) que deseja filtrar: "))
+        except ValueError:
+            print("Por favor, digite valores numéricos válidos.")
+        else:
+            if max_area >= min_area:
+                sent = False
 
     filtrado_area = []
 
@@ -349,11 +355,14 @@ def filtrar_room(content):
     #Filtrar dados por room
     while sent:
 
-        max_room = int(input("Digite o número máximo de cômodos (Room) que deseja filtrar: "))
-        min_room = int(input("Digite o número mínimo de cômodos (Room) que deseja filtrar: "))
-
-        if max_room and min_room and max_room > min_room:
-            sent = False
+        try:
+            max_room = int(input("Digite o número máximo de cômodos (Room) que deseja filtrar: "))
+            min_room = int(input("Digite o número mínimo de cômodos (Room) que deseja filtrar: "))
+        except ValueError:
+            print("Por favor, digite valores numéricos válidos.")
+        else:
+            if max_room >= min_room:
+                sent = False
 
     filtrado_room = []
 
@@ -372,17 +381,20 @@ def filtrar_long(content):
     #Filtrar dados por longitude
     while sent:
 
-        max_long = float(input("Digite a longitude máxima (Long) que deseja filtrar: "))
-        min_long = float(input("Digite a longitude mínima (Long) que deseja filtrar: "))
-
-        if max_long and min_long and max_long > min_long:
-            sent = False
+        try:
+            max_long = float(input("Digite a longitude máxima (Long) que deseja filtrar: "))
+            min_long = float(input("Digite a longitude mínima (Long) que deseja filtrar: "))
+        except ValueError:
+            print("Por favor, digite valores numéricos válidos.")
+        else:
+            if max_long >= min_long:
+                sent = False
 
     filtrado_long = []
 
     for row in content:
-        if row["Long"]:
-            if min_long <= float(row["Long"]) <= max_long:
+        if row["Lon"]:
+            if min_long <= float(row["Lon"]) <= max_long:
                 filtrado_long.append(row)
 
     return filtrado_long
@@ -395,11 +407,14 @@ def filtrar_lat(content):
     #Filtrar dados por latitude
     while sent:
 
-        max_lat = float(input("Digite a latitude máxima (Lat) que deseja filtrar: "))
-        min_lat = float(input("Digite a latitude mínima (Lat) que deseja filtrar: "))
-
-        if max_lat and min_lat and max_lat > min_lat:
-            sent = False
+        try:
+            max_lat = float(input("Digite a latitude máxima (Lat) que deseja filtrar: "))
+            min_lat = float(input("Digite a latitude mínima (Lat) que deseja filtrar: "))
+        except ValueError:
+            print("Por favor, digite valores numéricos válidos.")
+        else:
+            if max_lat >= min_lat:
+                sent = False
 
     filtrado_lat = []
 
@@ -413,10 +428,10 @@ def filtrar_lat(content):
 def buscar(content, termo):
 
     # Buscar dados com base na entrada fornecida
-    if termo == "Address":
+    if termo == "address":
         buscado_address = buscar_address(content)
         return buscado_address
-    elif termo == "Zip":
+    elif termo == "zip":
         buscado_zip = buscar_zip(content)
         return buscado_zip
     
@@ -466,6 +481,11 @@ def buscar_zip(content):
 
 def ordenar(content, criterio_1, ordem_1, criterio_2, ordem_2):
 
+    #Transformar entrada
+    chaves = {"price": "Price", "area": "Area", "room": "Room", "m2": "m2"}
+    criterio_1 = chaves[criterio_1]
+    criterio_2 = chaves[criterio_2]
+
     # Ordenar os dados com base nos critérios fornecidos
     limpa = limpeza(content, criterio_1, criterio_2)
 
@@ -502,7 +522,7 @@ def exibir(ordenada):
     for row in ordenada[:10]:
         print(f"Address: {row['Address']}, Zip: {row['Zip']}, Price: {row['Price']}, Area: {row['Area']}, Room: {row['Room']}, Long: {row['Lon']}, Lat: {row['Lat']}, m2: {row['m2']}")
 
-def relatorio(cont_lidos, cont_validos, cont_invalidos, cont_ausentes, media_price, media_area, media_rooms, media_m2, maior_price, maior_area, maior_rooms, maior_m2, menor_price, menor_area, menor_rooms, menor_m2):
+def relatorio(cont_lidos, cont_validos, cont_invalidos, cont_ausentes, media_price, media_area, media_rooms, media_m2, maior_price, maior_area, maior_rooms, maior_m2, menor_price, menor_area, menor_rooms, menor_m2, q_comodos, q_zip):
 
     # Gerar relatório com base nos dados fornecidos
     print("Relatório:")
@@ -522,6 +542,9 @@ def relatorio(cont_lidos, cont_validos, cont_invalidos, cont_ausentes, media_pri
     print(f"Menor área: {menor_area:.2f}" if menor_area is not None else "Menor área: N/A")
     print(f"Menor número de cômodos: {menor_rooms:.2f}" if menor_rooms is not None else "Menor número de cômodos: N/A")
     print(f"Menor preço por metro quadrado (m2): {menor_m2:.2f}" if menor_m2 is not None else "Menor preço por metro quadrado (m2): N/A")
+    print(f"Quantidade de anúncios por número de cômodos: {q_comodos}")
+    top_zip = sorted(q_zip.items(), key=lambda item: item[1], reverse=True)[:10]
+    print(f"Quantidade de anúncios por código postal (Zip): {dict(top_zip)} (exibindo os 10 códigos postais com mais anúncios)")
 
 def redirecionar(nova_tabela):
 
